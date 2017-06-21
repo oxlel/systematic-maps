@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Systematic Map</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom styles for this template -->
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css' rel='stylesheet' />
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <!-- OxLEL Header -->
+    <div class="top-bar">
+        <a href="/"><img class="top-bar-logo" src="https://oxlel.zoo.ox.ac.uk/wp-content/uploads/2016/04/oxlellogo.png"></a>
+        <div class="top-bar-title">
+            <h3>Meta-Analysis Mapping Tool: Thorn et. al. 2016 Systematic Map</h3>
+        </div>
+    </div>
+    <div class="full-screen-content">
+        <div id="map"></div>
+
+        <!-- Overlays -->
+        <div class="float-right">
+            <div class="panel panel-default details-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Study Details</h3>
+                    <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+                </div>
+                <div class="panel-body" id="details-pane">
+                    Select a study on the map to see its details
+                </div>
+            </div>
+            <div class="panel panel-default filter-panel">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Filter</h3>
+                    <span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>
+                </div>
+                <div class="panel-body">
+                    <label>Property </label><select onchange="populatePropertyValues();" id="property-select" class="form-control"></select>
+                    <label>Value </label><select multiple onchange="addFilter();" id="value-select" disabled="disabled" class="form-control"></select>
+                    <p id="filter-text">No active filters</p><input onclick="clearFilter();" class="btn btn-default" type="button" value="Clear Filters">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.1.0/topojson.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+<!-- Collapsable Panels -->
+<script type="text/javascript">
+    jQuery(function ($) {
+        $('.panel-heading span.clickable').on("click", function (e) {
+            if ($(this).hasClass('panel-collapsed')) {
+                // expand the panel
+                $(this).parents('.panel').find('.panel-body').slideDown();
+                $(this).removeClass('panel-collapsed');
+                $(this).find('i').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+            } else {
+                // collapse the panel
+                $(this).parents('.panel').find('.panel-body').slideUp();
+                $(this).addClass('panel-collapsed');
+                $(this).find('i').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    //Meta-Analysis Map
+    //Created by Andrew Martin, Long-Term Ecology Lab, University of Oxford
+    //31st May 2016
+
+    //Constants
+    var detailsPane = document.getElementById('details-pane');
+    var filterOptions = document.getElementById('filter-options');
+    var properyOptions = document.getElementById('property-select');
+    var valueOptions = document.getElementById('value-select');
+
+    //Data
+    var points = [];
+    var polys = [];
+    var color = d3.scale.linear()
+        .range(["yellow", "purple"]);
+
+    //Filters
+    var filterName = '';
+    var filterValue = [];
+
+    /* INITIALISATION */
+    L.mapbox.accessToken = 'pk.eyJ1IjoiemV0dGVyIiwiYSI6ImVvQ3FGVlEifQ.jGp_PWb6xineYqezpSd7wA'
+    map = L.mapbox.map('map', 'zetter.i73ka9hn')
+        .fitBounds([
+            [-45, -60],
+            [45, 180]
+        ]);
+
+    var bounds = map.getBounds(),
+        topLeft = map.latLngToLayerPoint(bounds.getNorthWest()),
+        bottomRight = map.latLngToLayerPoint(bounds.getSouthEast()),
+        existing = d3.set(),
+        drawLimit = bounds.pad(0.4);
+
+    d3.csv("https://oxlel.zoo.ox.ac.uk/wp-content/uploads/2016/06/points.csv", function (csv) {
+        d3.csv('https://oxlel.zoo.ox.ac.uk/wp-content/uploads/2016/06/polygons.csv', function (poly) {
+            polys = poly;
+            points = csv;
+            color.domain([d3.min(points, function (d) {
+                return d.Publication_Year;
+            }), d3.max(points, function (d) {
+                return d.Publication_Year;
+            })]);
+            populateFilterOptions();
+            var mapLayer = {
+                onAdd: function (map) {
+                    map.on('viewreset moveend', drawLayer);
+                    drawLayer();
+                }
+            };
+            map.addLayer(mapLayer);
+        })
+    });
+
+    /* FUNCTIONS */
+    //Populate dropdown of possible filters
+    function populateFilterOptions() {
+        var properties = Object.keys(points[0]);
+        var optionsHTML = '';
+        properties.forEach(function (property) {
+            optionsHTML = optionsHTML + '<option>' + property + '</option>';
+        });
+        properyOptions.innerHTML = optionsHTML;
+    }
+
+    //When filter changes, refresh list of possible values. NB Values are split by commas
+    function populatePropertyValues() {
+        var property = $('#property-select').val();
+        var values = points.map(function (d) {
+            return d[property];
+        }).sort().getUnique();
+        var splitValues = [];
+        values.forEach(function (value) {
+            var split = value.split(',');
+            splitValues = splitValues.concat(split);
+        });
+        splitValues = splitValues.map(function (d) {
+            return d.trim();
+        }).sort().getUnique();
+
+        var valuesHTML = '';
+        splitValues.forEach(function (value) {
+            valuesHTML = valuesHTML + '<option>' + value + '</option>';
+        });
+        valueOptions.innerHTML = valuesHTML;
+        valueOptions.disabled = false;
+    }
+
+    //Clear Filter
+    function clearFilter() {
+        filterName = '';
+        filterValue = [];
+        document.getElementById('filter-text').innerHTML = 'No active filters';
+        drawLayer();
+    }
+
+    //Set filter
+    function addFilter() {
+        filterName = $('#property-select').val();
+        filterValue = $('#value-select').val();
+
+        var filterText = 'Filtering ' + filterName + ' for: ';
+        filterValue.forEach(function (value) {
+            filterText = filterText + value + ', ';
+        });
+
+
+        document.getElementById('filter-text').innerHTML = filterText;
+
+        drawLayer();
+    }
+
+    //Redraw points layer (using filtering and colour options, and current zoom level)  
+    function drawLayer() {
+        d3.select('#overlay').remove();
+
+        var svg = d3.select(map.getPanes().overlayPane).append("svg")
+            .attr('id', 'overlay')
+            .attr("class", "leaflet-zoom-hide")
+            .style("width", map.getSize().x + 'px')
+            .style("height", map.getSize().y + 'px');
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + (-topLeft.x) + "," + (-topLeft.y) + ")");
+
+        var svgPoints = svg.selectAll("g")
+            .data(points)
+            .enter()
+            .append("g")
+            .filter(function (d) {
+                if (filterName == '') {
+                    return true;
+                }
+                var length = filterValue.length;
+                while (length--) {
+                    if (d[filterName].indexOf(filterValue[length]) != -1) {
+                        return true;
+                    }
+                }
+                return false;
+
+            });
+
+        svgPoints.append("circle")
+            .attr('class', 'marker')
+            .attr('stroke', 'white')
+            .attr('fill', function (d) {
+                return color(d.Publication_Year);
+            })
+            .attr('stroke-width', 1)
+            .attr("transform", function (d) {
+                var latlng = new L.LatLng(d.Latitude_Y, d.Longitude_X);
+                var coords = map.latLngToLayerPoint(latlng);
+
+                return "translate(" + coords.x + "," + coords.y + ")";
+            })
+            .attr("r", 5)
+            .on("click", function (d) {
+                selectedNode = d3.select(this);
+                detailsPane.innerHTML =
+                    '<p><b>' + d.Title + '</b></p><dl class="dl-horizontal"><dt>Publication ID</dt><dd>' + d.Publication_ID +
+                    '</dd><dt>Author(s)</dt><dd>' + d.Authors + '</dd><dt>Publication year</dt><dd>' + d.Publication_Year +
+                    '</dd><dt>Journal title</dt><dd>' + d.Journal_Title + '</dd><dt>Publication type</dt><dd>' + d.Publication_type +
+                    '</dd><dt>Open access</dt><dd>' + d.Open_Access + '</dd><dt>URL</dt><dd><a href="' + d.URL +
+                    '" target="_blank">' + d.URL + '</a></dd><dt>Abstract</dt><dd>' + d.Abstract +
+                    '</dd><dt>Region</dt><dd>' + d.Region + '</dd><dt>Country</dt><dd>' + d.Country +
+                    '</dd><dt>Location</dt><dd>' + d.Location + '</dd><dt>Longitude</dt><dd>' + d.Longitude_X +
+                    '</dd><dt>Latitude</dt><dd>' + d.Latitude_Y + '</dd><dt>Deg Min Sec</dt><dd>' + d.Location_DMS +
+                    '</dd><dt>Point/polygon</dt><dd>' + d.Polygon_Point + '</dd><dt>Scale</dt><dd>' + d.Scale +
+                    '</dd><dt>Study duration</dt><dd>' + d.Duration_Years + '</dd><dt>Crop(s)</dt><dd>' + d.Crop +
+                    '</dd><dt>Crop group(s)</dt><dd>' + d.Crop_group + '</dd><dt>Annual/perennial</dt><dd>' + d.Annual_Perennial +
+                    '</dd><dt>Farm type</dt><dd>' + d.Farm_Type + '</dd><dt>Rainfed/irrigated</dt><dd>' + d.Rainfed_Irrigated +
+                    '</dd><dt>Climate</dt><dd>' + d.Climate + '</dd><dt>Biome</dt><dd>' + d.Biome +
+                    '</dd><dt>Climate change mentioned</dt><dd>' + d.Climate_change_mentioned +
+                    '</dd><dt>Experimental design</dt><dd>' + d.Experimental_Design +
+                    '</dd><dt>Properties</dt><dd>' + d.Properties + '</dd><dt>Chemical indicators</dt><dd>' + d.Chemical_Indicators +
+                    '</dd><dt>Biological indicators</dt><dd>' + d.Biological_Indicators +
+                    '</dd><dt>Physical indicators</dt><dd>' + d.Physical_Indicators +
+                    '</dd><dt>Social indicators</dt><dd>' + d.Social_Indicators +
+                    '</dd><dt>Economic indicators</dt><dd>' + d.Economic_Indicators +
+                    '</dd><dt>Taxonomic indicator</dt><dd>' + d.Taxonomic_Indicator +
+                    '</dd><dt>Primary ES</dt><dd>' + d.Primary_ES + '</dd><dt>Subtype primary ES</dt><dd>' + d.Subtype_Primary_ES +
+                    '</dd><dt>Secondary ES</dt><dd>' + d.Secondary_ES + '</dd><dt>Subtype secondary ES</dt><dd>' +
+                    d.Subtype_Secondary_ES + '</dd><dt>Various 2<</dt><dd>' + d.Various_2 +
+                    '</dd><dt>Management</dt><dd>' + d.Management + '</dd><dt>Observations</dt><dd>' + d.Observations +
+                    '</dd><dt>Impact on ES</dt><dd>' + d.Impact_ES + '</dd><dt>Impact on yield</dt><dd>' + d.Impact_Yield +
+                    '</dd></dl>';
+            });
+    }
+
+    //Filter for distinct values
+    Array.prototype.getUnique = function () {
+        var u = {},
+            a = [];
+        for (var i = 0, l = this.length; i < l; ++i) {
+            if (u.hasOwnProperty(this[i])) {
+                continue;
+            }
+            a.push(this[i]);
+            u[this[i]] = 1;
+        }
+        return a;
+    }
+</script>
+
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Evidence-Based Map</title>
+    <meta name="description" content="An evidence-based map, using the Oxford Evidence-Based Mapping Tool.">
+    <meta name="author" content="Andrew Martin">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" />
+    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
+</head>
+
+<body>
+
+    <div class="top-links">
+        <a href="https://oxlel.zoo.ox.ac.uk" target="_blank" class="top-links-right">Oxford Long-Term Ecology Laboratory</a> <a href="https://oxlel.github.io/evidencemaps">&larr; All Evidence Maps</a>
+    </div>
+    <hr/>
+
+    <h1>Controls on Arctic Shrub Growth and Expansion<br/><small>(Work in Progress)</small></h1>
+    <hr/>
+
+    <div class="container">
+        <div class="row">
+            <div class="nine columns">
+                <svg id="map" />
+            </div>
+            <div class="three columns">
+                <div id="details-panel">
+                    <h3>Legend</h3>
+                    <div id="slideout_inner">
+                        <strong>Bioclimate Subzone</strong>
+                        <p>Cool subzones</p>
+
+                        <strong>Evidence Point</strong>
+                        <p>Cool subzones</p>
+
+                    </div>
+                </div>
+
+                <div id="config-panel">
+                    <h3>Slice</h3>
+
+                    <label for="exampleRecipientInput">Dimension</label>
+                    <select class="u-full-width" id="exampleRecipientInput">
+                        <option value="Option 1">Study Design</option>
+                        <option value="Option 2">Temporal Extent</option>
+                        <option value="Option 3">Temporal Resolution</option>
+                    </select>
+
+                    <p>No active slices</p>
+
+                </div>
+            </div>
+        </div>
+</body>
+
+<script src="app.js"></script>
+
+</html>

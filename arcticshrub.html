@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Evidence-Based Map</title>
+    <meta name="description" content="An evidence-based map, using the Oxford Evidence-Based Mapping Tool.">
+    <meta name="author" content="Andrew Martin">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" />
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.0.0/nouislider.min.css" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/4.3.1/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.0.0/nouislider.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="top-links">
+            <a href="https://oxlel.zoo.ox.ac.uk" target="_blank" class="top-links-right">Oxford Long-Term Ecology Laboratory</a>            <a href="https://oxlel.github.io/evidencemaps">&larr; All Evidence Maps</a>
+        </div>
+        <hr/>
+
+        <h1 id="study-name">Loading...<br/><small id="study-publication">...</small></h1>
+        <hr/>
+        <div class="row">
+            <div class="nine columns">
+                <svg id="map" />
+
+                <!-- Slicer -->
+                <h3>Slice</h3>
+                <div class="slicer">
+                    <label for="slicer">By Dimension</label>
+                    <select class="u-full-width" data-bind=" options: slices, optionsCaption: 'Select...', optionsText: function(item) { return item.name }, value: currentSlice"></select>
+                    <div id="slicer" data-bind="slider: currentSlice, sliderOptions: {minValue: 0, max: 100, range: 'min', step: 1"></div>
+                </div>
+                <div data-bind="visible: currentSlice() != null">
+                    <span data-bind="text: currentSliceMin">?</span> -
+                    <span data-bind="text: currentSliceMax">?</span>
+                    <span data-bind="text: currentSlice() ? currentSlice().unit : ''">?</span>
+                    <br/>
+                    <button>Stash Slice</button>
+                </div>
+
+                <table data-bind="visible: stashedSlices().length > 0">
+                    <thead>
+                        <tr>
+                            <th>Slice</th>
+                            <th>Range</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody data-bind="foreach: stashedSlices">
+                        <tr>
+                            <td data-bind="text: name"></td>
+                            <td data-bind="text: lower + ' to ' + upper"></td>
+                            <td><button data-bind="click: $parent.removeFilter:">☓</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="three columns">
+                <form id="filter-form" data-bind="submit: stashFilter">
+                    <h3>Filter</h3>
+
+                    <label for="exampleRecipientInput">Metadata</label>
+                    <select class="u-full-width" data-bind=" options: filters,
+                                        optionsText: function(item) { return item.name },
+                                        value: selectedFilter"></select>
+
+                    <!-- List of active filters and slices -->
+                    <table data-bind="visible: stashedFilters().length > 0">
+                        <thead>
+                            <tr>
+                                <th>Filter</th>
+                                <th>Value</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: stashedFilters">
+                            <tr>
+                                <td data-bind="text: name"></td>
+                                <td data-bind="text: value"></td>
+                                <td><button data-bind="click: $parent.removeFilter">☓</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <select multiple style="height:15em; width:100%;" data-bind="options: selectedFilter() ? selectedFilter().options : [],
+                                   selectedOptions: selectedFilters"></select>
+                    <button>Stash Filter</button>
+                </form>
+
+                <div id="details-panel">
+                    <h3>Legend</h3>
+                    <div id="slideout_inner">
+                        <strong>Bioclimate Subzone</strong>
+                        <p>Landmass colouring indicates bioclimatic subzone (Walker et al 2005), or Oro-Arctic (defined in section 2a of the paper)</p>
+
+                        <strong>Evidence Point</strong>
+                        <p>Pan-Arctic map showing evidence points generated for proximal controls on Arctic shrub growth and
+                            expansion (reported in peer-reviewed literature during the period 1 January 2012–31 January 2017).
+                            Each circle represents one location at which an evidence point was generated, or a regional cluster
+                            if more than one location occurred within 150 km. Circle size represents the count of evidence
+                            points that occurred at the location. Pie segments represent a percentage of the evidence points
+                            at a location for each control type, represented by colour.</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+<script src="app.js"></script>
+
+</html>

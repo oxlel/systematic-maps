@@ -1,0 +1,34 @@
+{
+    "displayunit": [
+        { "name": "2 Air Temperature", "colour": "#015ce6" },
+        { "name": "3 Carbon Dioxide", "colour": "#ff2fc5" },
+        { "name": "4 Fire", "colour": "#ff2501" },
+        { "name": "5 Humidity", "colour": "#ebc2fd" },
+        { "name": "6 Ice and Frost", "colour": "#befee8" },
+        { "name": "7 Light", "colour": "#fdfc02" },
+        { "name": "8 Snow", "colour": "white" },
+        { "name": "9 Herbivory", "colour": "#38a801" },
+        { "name": "10 Fungal", "colour": "#8ee458" },
+        { "name": "11 Soil Surface", "colour": "#ff8c22" },
+        { "name": "12 Active Layer Depth", "colour": "#e5bd73" },
+        { "name": "12 Soil Belowground Conditions", "colour": "#a87000" },
+        { "name": "13 Soil Moisture", "colour": "#73b2ff" },
+        { "name": "14 Soil Belowground Resources", "colour": "#664402" },
+
+        { "name": "Ecosystem Structure", "colour": "#8ee458" },
+        { "name": "Soil Nutrients", "colour": "#664402" },
+        { "name": "Topography", "colour": "#ff8c22" },
+        { "name": "Human", "colour": "#ff2fc5" },
+        { "name": "Glacial and Periglacial", "colour": "#befee8" },
+        { "name": "Sea Ice Extent", "colour": "#white" }
+    ],
+    "subzones": [
+        { "name": "Glacier", "colour": "#e1e1e1" },
+        { "name": "Oroarctic", "colour": "#a8baad" },
+        { "name": "A", "colour": "#f0ad70" },
+        { "name": "B", "colour": "#edcc71" },
+        { "name": "C", "colour": "#efee70" },
+        { "name": "D", "colour": "#c3d370" },
+        { "name": "E", "colour": "#9bb96f" }
+    ]
+}

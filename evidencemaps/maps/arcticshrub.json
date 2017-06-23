@@ -1,8 +1,0 @@
-{
-    "name": "Arctic Shrub Growth and Expansion",
-    "publication": "In review",
-    "configuration": {
-        "projection": "arctic",
-        "excludeFields": []
-    }
-}

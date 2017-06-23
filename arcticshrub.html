@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Evidence-Based Map</title>
+    <title>Controls on Arctic Shrub Growth and Expansion - Evidence Map</title>
     <meta name="description" content="An evidence-based map, using the Oxford Evidence-Based Mapping Tool.">
     <meta name="author" content="Andrew Martin">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -30,7 +30,7 @@
         </div>
         <hr/>
 
-        <h1 id="study-name">Loading...<br/><small id="study-publication">...</small></h1>
+        <h1 id="study-name">Loading...<br/><small id="study-publication"></small></h1>
         <hr/>
         <div class="row">
             <div class="nine columns">
@@ -40,7 +40,7 @@
                 <h3>Slice</h3>
                 <div class="slicer">
                     <label for="slicer">By Dimension</label>
-                    <select class="u-full-width" data-bind=" options: slices, optionsCaption: 'Select...', optionsText: function(item) { return item.name }, value: currentSlice"></select>
+                    <select class="u-full-width" data-bind=" options: slices, optionsCaption: 'None', optionsText: function(item) { return item.name }, value: currentSlice"></select>
                     <div id="slicer" data-bind="slider: currentSlice, sliderOptions: {minValue: 0, max: 100, range: 'min', step: 1"></div>
                 </div>
                 <div data-bind="visible: currentSlice() != null">
@@ -70,6 +70,9 @@
 
             </div>
             <div class="three columns">
+
+                <p>From the publication <a href="http://iopscience.iop.org/article/10.1088/1748-9326/aa7989" target="_blank">Martin et al (2017)</a></p>
+
                 <form id="filter-form" data-bind="submit: stashFilter">
                     <h3>Filter</h3>
 

@@ -127,7 +127,6 @@ function EvidenceMapToolViewModel(mapname) {
             }
 
             self.stashedFilters().forEach(function(f) {
-                console.log(f);
                 filteredAndSlicedData =
                     _.filter(filteredAndSlicedData, function(dp) {
                         return f.value == dp[f.name];
@@ -139,7 +138,6 @@ function EvidenceMapToolViewModel(mapname) {
         }
 
         self.removeFilter = function (filter) {
-            console.log(filter);
             self.stashedFilters.remove(filter);
         }
 
@@ -151,10 +149,13 @@ function EvidenceMapToolViewModel(mapname) {
         self.stashedSlices.subscribe(function(max) { self.redrawMap(); });
         self.currentSlice.subscribe(function(slice) {
             if (slice != null) {
+                redrawMap();
                 self.currentSliceMin(slice.min);
                 self.currentSliceMax(slice.max);
+            } else {
+                redrawMap();
             }
-            });
+        });
 
         // Load app state
         d3.csv("maps/" + mapname + ".csv", function(error, rawData) {
@@ -283,7 +284,7 @@ d3.json("layers/world110.json", function(error, world) {
 var palette;
 let getColour = function(controlName) {
     let match = _.find(palette, function(item) { return item.name == controlName; });
-    if (match == null) { console.log(controlName); return "black"; }
+    if (match == null) { return "black"; }
     return match.color;
 }
 
@@ -311,14 +312,8 @@ let redraw = function(rawData) {
         })
         ._wrapped;
     
-    console.log(zoomLevel);
-
-    // let currentAggregationDistance = aggregationDistance - searchDistanceScale(zoomLevel);
-    // console.log(searchDistanceScale(zoomLevel));
-
     // Zoom level is between one (= 150km aggregation) and four (=1km)
     let currentAggregationDistance = 250 - (((zoomLevel - 1) / (4 - 1)) * (250 - 1));
-    console.log(currentAggregationDistance);
 
     var clusteredData = cluster(sortedData, currentAggregationDistance, numberOfPoints);
 
@@ -416,13 +411,11 @@ function zoomed() {
   g.attr("transform", d3.event.transform);
   if (zoomLevel != d3.event.transform.k) {
     zoomLevel = d3.event.transform.k;
-    console.log(zoomLevel);
     redrawMap();
   }
 }
 
 function cluster(points, searchDistance) {
-    console.log(searchDistance);
     let clusterRecursive = function(remainingPoints, clusters) {
         let currentPoint = {
             "type": "Feature",

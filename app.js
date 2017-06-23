@@ -157,9 +157,9 @@ function EvidenceMapToolViewModel(mapname) {
             });
 
         // Load app state
-        d3.csv("/maps/" + mapname + ".csv", function(error, rawData) {
+        d3.csv("maps/" + mapname + ".csv", function(error, rawData) {
             self.rawData = rawData;
-            $.getJSON("/maps/" + mapname + ".json", function(config) { 
+            $.getJSON("maps/" + mapname + ".json", function(config) { 
                 $('#study-name').text(config.name);
                 $('#study-publication').val(config.publication);
                 _(config.fields)
